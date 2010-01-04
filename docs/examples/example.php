@@ -33,7 +33,7 @@ print(">>>>>>>>>> Performing a GET for basic statistics returns:\n" . print_r($s
 $extended_stats_result  = $defensio->getExtendedStats(array('from' => '2009-10-01', 'to' => '2009-10-10'));
 print(">>>>>>>>>> Performing a GET for extended statistics returns:\n" . print_r($extended_stats_result[1], true));
 
-$dictionary_filter_result = $defensio->postDictionaryFilter(array('field1' => 'This content contains some fucking cursing.'));
+$dictionary_filter_result = $defensio->postProfanityFilter(array('field1' => 'This content contains some fucking cursing.'));
 print(">>>>>>>>>> Performing a dictionary filter POST returns:\n" . print_r($dictionary_filter_result[1], true));
 
 print(">>>>>>>>>> Done!");
