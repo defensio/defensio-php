@@ -117,7 +117,7 @@ class Defensio_REST_Client
             $msg = 'Impossible to open socket to ' . $url['host'] . ':' . $url['port'];
 
             if($errno == 110)
-                $ex = new DefensioConnectionTimedout($msg);
+                $ex = new DefensioConnectionTimeout($msg);
             else
                 $ex = new DefensioConnectionError($msg);
 
