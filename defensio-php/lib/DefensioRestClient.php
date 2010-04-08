@@ -53,7 +53,7 @@ class Defensio_REST_Client
     }
 
     /** 
-    * Do actual HTTP requests in here, absctract from the rest of phpDefensio so we can easily change
+    * Do actual HTTP requests in here, abstracts from the rest of phpDefensio so we can easily change
     * the library or technique used as of now it uses a simple sockets implementation, and might throw 
     * an exception if no socket can be open 
     */
@@ -82,6 +82,9 @@ class Defensio_REST_Client
 
             curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
+            curl_setopt($curl, CURLOPT_HTTP_VETSION, CURL_HTTP_VERSION_1_0 );
+            //Hackish way to avoid HTTP 417, curl by default sets the Expect header
+            curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
         }
 
         if($response = curl_exec($curl)){
@@ -162,11 +165,11 @@ class Defensio_REST_Client
         if($info['timed_out'])
             throw new DefensioConnectionTimeout();
 
-        $result = explode("\r\n\r\n", $result, 2);
-        $header = isset($result[0]) ? explode("\r\n", $result[0]) : '';
+        $result  = explode("\r\n\r\n", $result, 2);
+        $header  = isset($result[0]) ? explode("\r\n", $result[0]) : '';
         $content = isset($result[1]) ? $result[1] : '';
-        $status = isset($header[0]) ? explode(' ', $header[0] ) : NULL;
-        $status = $status[1];
+        $status  = isset($header[0]) ? explode(' ', $header[0] ) : NULL;
+        $status  = $status[1];
 
         return Array($status, $content, $header);
     }

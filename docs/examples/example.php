@@ -6,12 +6,15 @@
 $api_key = 'KEY_HERE';
 
 require_once('defensio-php/Defensio.php');
+
+# For curl
+#$defensio = new Defensio($api_key, Defensio::CLIENT_ID, TRUE);
 $defensio = new Defensio($api_key);
 $document = array();
 
 print (array_shift($defensio->getUser()) == 200) ? ">>>>>>>>>> API key is valid.\n" : die(">>>>>>>>>> API key is invalid. Get one at http://defensio.com.\n");
 
-$document = array('type' => 'comment', 'content' => 'I love Defensio!', 'platform' => 'defensio_php_example', 'client' => 'Defensio-PHP Example | 0.1 | Joe Blow | joe@bloe.com', 'async' => 'false');
+$document = array('type' => 'article', 'content' => 'I love Defensio!', 'platform' => 'defensio_php_example', 'client' => 'Defensio-PHP Example | 0.1 | Joe Blow | joe@bloe.com', 'async' => 'false');
 
 $post_result = $defensio->postDocument($document);
 print(">>>>>>>>>> POSTing a document returns the following:\n" . print_r($post_result[1], true));

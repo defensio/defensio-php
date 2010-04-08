@@ -28,10 +28,11 @@ class Defensio
     private $client_id;
     private $defensio_paths; 
 
-    public function __construct($api_key, $client_id = self::CLIENT_ID)
+    public function __construct($api_key, $client_id = self::CLIENT_ID, $use_curl = FALSE)
     {
         $this->api_key = $api_key;
-        $this->rest_client = new Defensio_REST_Client(self::API_HOST);
+        $use_sockets = !$use_curl;
+        $this->rest_client = new Defensio_REST_Client(self::API_HOST, $use_sockets);
         $this->client_id = $client_id;
         $this->defensio_paths = Array(
           'key_get'                => "/2.0/users/$this->api_key." . self::FORMAT,
