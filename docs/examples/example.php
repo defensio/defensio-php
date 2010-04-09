@@ -7,9 +7,9 @@ $api_key = 'KEY_HERE';
 
 require_once('defensio-php/Defensio.php');
 
-# For curl
-#$defensio = new Defensio($api_key, Defensio::CLIENT_ID, TRUE);
 $defensio = new Defensio($api_key);
+# Force curl?
+# $defensio->useCurl();
 $document = array();
 
 print (array_shift($defensio->getUser()) == 200) ? ">>>>>>>>>> API key is valid.\n" : die(">>>>>>>>>> API key is invalid. Get one at http://defensio.com.\n");

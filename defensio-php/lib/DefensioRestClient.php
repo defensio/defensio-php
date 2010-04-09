@@ -10,11 +10,11 @@ class Defensio_REST_Client
     public function __construct($host, $use_sockets = TRUE, $http_version = '1.0')
     {
         $this->host = $host;
+        $this->use_sockets  = $use_sockets;
         $this->http_version = $http_version;
-        $this->use_sockets = $use_sockets;
     }
 
-    /**
+    /** 
     * @param string $path The path in relation to $host
     * @param Array $data  an array of data ('key' => 'value') that will be posted into the server
     * @return Array an array with two elements ( status, data, header )
@@ -75,6 +75,9 @@ class Defensio_REST_Client
         // HTTP status, body, headers
         $out  = array(NULL, '', array());
 
+        if ($this->http_version == '1.0')
+            curl_setopt($curl, CURLOPT_HTTP_VETSION, CURL_HTTP_VERSION_1_0 );
+
         if ($verb == 'POST' || $verb == 'PUT'){
 
             if($verb == 'PUT')
@@ -82,7 +85,6 @@ class Defensio_REST_Client
 
             curl_setopt($curl, CURLOPT_POST, TRUE);
             curl_setopt($curl, CURLOPT_POSTFIELDS, $data);
-            curl_setopt($curl, CURLOPT_HTTP_VETSION, CURL_HTTP_VERSION_1_0 );
             //Hackish way to avoid HTTP 417, curl by default sets the Expect header
             curl_setopt($curl, CURLOPT_HTTPHEADER, array('Expect:'));
         }

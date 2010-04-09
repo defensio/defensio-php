@@ -28,11 +28,20 @@ class Defensio
     private $client_id;
     private $defensio_paths; 
 
-    public function __construct($api_key, $client_id = self::CLIENT_ID, $use_curl = FALSE)
+    public function __construct($api_key, $client_id = self::CLIENT_ID)
     {
         $this->api_key = $api_key;
-        $use_sockets = !$use_curl;
-        $this->rest_client = new Defensio_REST_Client(self::API_HOST, $use_sockets);
+        $this->rest_client = new Defensio_REST_Client(self::API_HOST);
+
+        if(!$this->isSocketsAvailable()){
+
+            if( $this->isCurlAvailable())
+                $this->useCurl();
+
+            else
+                throw new Exception('Defensio needs either sockets or curl support to work');
+        }
+
         $this->client_id = $client_id;
         $this->defensio_paths = Array(
           'key_get'                => "/2.0/users/$this->api_key." . self::FORMAT,
@@ -140,6 +149,55 @@ class Defensio
         return self::parseResult($result, FALSE, array(200));
     }
 
+    /**
+     * Forces the HTTP connections to be made using libcurl.
+     * @return bool true for completness
+     */
+    public function useCurl()
+    {
+        if($this->isCurlAvailable()){
+            $this->rest_client->use_sockets = FALSE;
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Forces the HTTP connections to be made using the PHP sockets extension.
+     * by default this library will try to use sockets unless the extension is not loaded
+     * or fsockopen has been disabled in that case it will automatically use sockets and
+     * calling this method will return false, meaning sockets are not available.
+     *
+     * @return boolean true if sockets are available false if the extension is not loaded
+     *                      or it has been disabled via disable_functions
+     */
+    public function useSockets()
+    {
+        if ($this->isSocketsAvailable()){
+            $this->rest_client->use_sockets = TRUE;
+            return TRUE;
+        }
+
+        return FALSE;
+    }
+
+    /**
+     * Checks if the socket functions are available
+     */
+    private function isSocketsAvailable()
+    {
+        return extension_loaded('sockets') && function_exists('fsockopen');
+    }
+    
+    /**
+     * Checks if the curl functions are available
+     */
+    private function isCurlAvailable()
+    {
+        return extension_loaded('curl') && function_exists('curl_init') && function_exists('curl_exec');
+    }
+
     /** 
      * Takes the data POSTed by Defensio during the callback following an async request and returns an array
      * @param string $data XML data received by Defensio. If not specified, php://input will be used
@@ -156,7 +214,7 @@ class Defensio
      * Takes a raw result from rest_client and parses it
      * @param array $result The result of the HTTP call through rest_client
      * @param boolean $throw_on_failure Throws a DefensioFail exception if there was an error during the request.
-     * @param array $expected_http_statuses List of expected HTTP statuses. Other statuses will trhow DefensioUnexpectedHTTPStatus
+     * @param array $expected_http_statuses List of expected HTTP statuses. Other statuses will throw DefensioUnexpectedHTTPStatus
      * @return array Array containing two values: the HTTP status & a SimpleXML object with the values returned by Defensio
      */
     private static function parseResult($result, $throw_on_failure=TRUE, $expected_http_statuses = array(200))

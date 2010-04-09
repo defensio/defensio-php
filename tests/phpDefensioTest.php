@@ -16,7 +16,7 @@ class phpDefensioTest extends PHPUnit_Framework_TestCase
     public function testDefensioConstructor()
     {
 
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
         $this->assertEquals($this->api_key, $d->getApiKey());
         $this->assertNull($d->authenticated);
     }
@@ -44,7 +44,7 @@ class phpDefensioTest extends PHPUnit_Framework_TestCase
 
     public function testIsKeyValidWhenValid()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('get'));
             $result = "
@@ -63,7 +63,7 @@ class phpDefensioTest extends PHPUnit_Framework_TestCase
 
     public function testAnalizeDocumentWhenUnauthorized()
     {
-        $d = new Defensio($this->api_key . '__', 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key . '__', 'Test');
 
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('post'));
@@ -90,7 +90,7 @@ class phpDefensioTest extends PHPUnit_Framework_TestCase
 
     public function testAnalizeDocumentWhenInvalid()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
 
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('post'));
@@ -118,7 +118,7 @@ XML;
 
     public function testAnalizeDocumentWhenAsyncOK()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('post'));
             $result = <<<XML
@@ -150,7 +150,7 @@ XML;
 
     public function testAnalizeDocumentWhenSyncOK()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
 
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('post'));
@@ -184,7 +184,7 @@ XML;
 
     public function testPublishDocumentWhenOK()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('post'));
             $result = <<<XML
@@ -206,24 +206,28 @@ XML;
 
 
         $result = $d->postDocument(Array('author_name' => 'Jhon Doe', 'content' => 'Lorem ipsum... et cetera', 'type' => 'article', 'platform' => 'PHP_app'));
-        $this->assertTrue(is_object($result[2]));
-        $result_obj = $result[2];
+        $this->assertTrue(is_object($result[1]));
+        $result_obj = $result[1];
 
         $this->assertObjectHasAttribute('signature', $result_obj);
     }
 
+
     public function testReportDocumentAsLegitimateWhenOk()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        if($this->mock_rest_client) return;
+
+        $d = new Defensio($this->api_key, 'Test');
         $result = $d->postDocument(Array('type' => 'comment', 'author_name' => 'Jhon Doe', 'content' => 'Lorem ipsum... et cetera', 'platform' => 'PHP_app'));
-        $result_obj = $result[2];
+        $result_obj = $result[1];
         $signature = $result_obj->signature;
         $d->putDocument($signature, array('allow' => 'true'));
     }
 
     public function testReportDocumentAsLegitimateWhenDocumentNotFound()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        if ($this->mock_rest_client) return;
+        $d = new Defensio($this->api_key, 'Test');
         $signature = 'random_not_existent';
         try{
             $result = $d->putDocument($signature, array('allow' => 'true'));
@@ -235,7 +239,7 @@ XML;
 
     public function testGetDocumentWhenInexistent()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
 
         if($this->mock_rest_client) {
             $client = $this->getMock('DefensioRESTClient', array('get'));
@@ -254,8 +258,7 @@ XML;
         try{
             $result = $d->getDocument('random_crap_here');
         }catch(DefensioFail $expected){
-        
-            $this->assertEquals(404, $expected->http_code);
+            $this->assertEquals(404, $expected->http_status);
             return;
         }
 
@@ -264,14 +267,29 @@ XML;
 
     public function testGetDocumentWhenExistent()
     {
-        $d = new Defensio($this->api_key, 'Test', 'localhost:3000');
+        $d = new Defensio($this->api_key, 'Test');
+        if($this->mock_rest_client) {
+            $client = $this->getMock('DefensioRESTClient', array('get'));
+            $result = <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<defensio-result>
+  <api-version>2.0</api-version>
+  <message></message>
+  <allow>false</allow>
+  <signature>spamsignature1</signature>
+  <status>success</status>
+  <profanity-match>false</profanity-match>
+</defensio-result>
+XML;
+            $client->expects($this->once())->method('get')->will($this->returnValue(array(200, $result, array() )));
+            $d->rest_client = $client;
+        }
         $result = $d->getDocument('spamsignature1');
 
-        $this->assertTrue($result[0]);
-        $this->assertTrue($result[2]->status == 'success');
-        $this->assertTrue($result[2]->allow == 'false');
-        $this->assertTrue($result[2]->{'dictionary-match'} == 'false');
-        $this->assertEquals(200, $result[3]);
+        $this->assertTrue($result[1]->status == 'success');
+        $this->assertTrue($result[1]->allow == 'false');
+        $this->assertTrue($result[1]->{'profanity-match'} == 'false');
+        $this->assertEquals(200, $result[0]);
 
     }
 
