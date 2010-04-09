@@ -76,7 +76,7 @@ class Defensio_REST_Client
         $out  = array(NULL, '', array());
 
         if ($this->http_version == '1.0')
-            curl_setopt($curl, CURLOPT_HTTP_VETSION, CURL_HTTP_VERSION_1_0 );
+            curl_setopt($curl, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_1_0 );
 
         if ($verb == 'POST' || $verb == 'PUT'){
 
@@ -101,6 +101,11 @@ class Defensio_REST_Client
                 $header = explode(": ", $v);
                 $out[2][$header[0]] = $header[1];
             }
+
+        } else {
+            $msg = curl_error($curl);
+            $msg = 'Curl error ' . $msg;
+            throw new DefensioConnectionError($msg);
         }
 
         curl_close($curl);
