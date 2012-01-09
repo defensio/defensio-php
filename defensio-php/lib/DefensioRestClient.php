@@ -1,5 +1,5 @@
 <?php
-require_once('exceptions.php');
+require_once( dirname( __FILE__ ) . '/exceptions.php' );
 
 class Defensio_REST_Client
 {

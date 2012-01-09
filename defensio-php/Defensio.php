@@ -10,8 +10,8 @@
  * @version 2.0
  *
  */
-require_once('lib/exceptions.php');
-require_once('lib/DefensioRestClient.php');
+require_once( dirname( __FILE__ ) . '/lib/exceptions.php' );
+require_once( dirname( __FILE__ ) . '/lib/DefensioRestClient.php' );
 
 class Defensio
 {
