@@ -130,7 +130,7 @@ class Defensio_REST_Client
 
         $target = $url['path'];
 
-        if($url['query'])
+        if(array_key_exists($url['query']) && $url['query'] != null)
             $target .= "?$url[query]";
 
         fputs($sock, "$verb $target HTTP/$this->http_version\r\n");
